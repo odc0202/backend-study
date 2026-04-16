@@ -1,0 +1,112 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum BackgroundType {
+  COLOR
+  IMAGE
+}
+
+enum FocusStatus {
+  IDLE
+  RUNNING
+  PAUSED
+  DONE
+}
+
+model Study {
+  id              String         @id @default(cuid())
+  name            String
+  nickname        String
+  description     String?
+  password        String?
+  backgroundType  BackgroundType @default(COLOR)
+  backgroundColor String?
+  backgroundImage String?
+  totalPoints     Int            @default(0)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  habits        Habit[]
+  participants  Participant[]
+  focusSessions FocusSession[]
+  reactions     StudyReaction[]
+
+  @@map("studies")
+}
+
+model Participant {
+  id       String   @id @default(cuid())
+  studyId  String
+  nickname String
+  emoji    String?
+  joinedAt DateTime @default(now())
+
+  study Study @relation(fields: [studyId], references: [id], onDelete: Cascade)
+
+  @@unique([studyId, nickname])
+  @@map("participants")
+}
+
+model StudyReaction {
+  id        String   @id @default(cuid())
+  studyId   String
+  emoji     String
+  count     Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  study Study @relation(fields: [studyId], references: [id], onDelete: Cascade)
+
+  @@unique([studyId, emoji])
+  @@map("study_reactions")
+}
+
+model Habit {
+  id        String   @id @default(cuid())
+  studyId   String
+  title     String
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  study Study      @relation(fields: [studyId], references: [id], onDelete: Cascade)
+  logs  HabitLog[]
+
+  @@map("habits")
+}
+
+model HabitLog {
+  id        String   @id @default(cuid())
+  habitId   String
+  date      DateTime
+  completed Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  habit Habit @relation(fields: [habitId], references: [id], onDelete: Cascade)
+
+  @@unique([habitId, date])
+  @@map("habit_logs")
+}
+
+model FocusSession {
+  id           String      @id @default(cuid())
+  studyId      String
+  date         DateTime
+  durationSecs Int         @default(1500)
+  elapsedSecs  Int         @default(0)
+  status       FocusStatus @default(IDLE)
+  pointsEarned Int         @default(0)
+  startedAt    DateTime?
+  completedAt  DateTime?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  study Study @relation(fields: [studyId], references: [id], onDelete: Cascade)
+
+  @@map("focus_sessions")
+}
