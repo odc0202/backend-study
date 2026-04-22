@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import 'dotenv/config';
 
-import pingRouter from './routes/ping';
+import pingRouter from './routes/ping.js';
 
 const app = express();
 
